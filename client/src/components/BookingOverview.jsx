@@ -89,7 +89,13 @@ const BookingOverview = () => {
       console.error('❌ Fehler beim Laden der Buchung:', error);
       
       if (error.response?.status === 404) {
-        setError('Noch keine Buchung für diese Gruppe gestartet.');
+        try {
+          await api.post(`/bookings/initialize/${groupId}`);
+          await loadBookingSession();
+          return;
+        } catch (initError) {
+          setError(initError.response?.data?.message || 'Noch keine Buchung für diese Gruppe gestartet.');
+        }
       } else {
         setError(error.response?.data?.message || 'Fehler beim Laden der Buchungsdaten');
       }

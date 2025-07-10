@@ -95,11 +95,11 @@ const GroupDetail = () => {
     switch (status) {
       case 'decided':
         return {
-          label: 'Bereit zur Buchung',
+          label: 'Bezahlung offen',
           color: 'warning',
           icon: <PaymentIcon />,
-          actionLabel: 'Jetzt buchen!',
-          description: 'Die Gruppe hat sich entschieden - jetzt kann gebucht werden!',
+          actionLabel: 'Jetzt bezahlen!',
+          description: 'Die Gruppe hat sich entschieden - bitte jetzt bezahlen!',
           buttonColor: 'linear-gradient(45deg, #FF6B35, #F7931E)',
           urgent: true
         };
@@ -203,6 +203,17 @@ const GroupDetail = () => {
       setGroup(response.data);
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Gruppe:', error);
+    }
+  };
+ // Starte Buchung (falls noch nicht vorhanden) und öffne anschließend die Zahlungsübersicht
+  const openBooking = async () => {
+    try {
+      await api.post(`/bookings/initialize/${id}`);
+    } catch (error) {
+      // Ignoriere Fehler, wenn Buchung bereits existiert oder Benutzer keine Rechte hat
+      console.error('Fehler beim Initialisieren der Buchung:', error);
+    } finally {
+      navigate(`/groups/${id}/booking`);
     }
   };
 
@@ -485,7 +496,7 @@ const GroupDetail = () => {
                   variant="contained"
                   size="large"
                   startIcon={<BookingIcon />}
-                  onClick={() => navigate(`/groups/${id}/booking`)}
+                  onClick={openBooking}
                   sx={{
                     background: bookingStatus.buttonColor,
                     color: 'white',
@@ -545,7 +556,7 @@ const GroupDetail = () => {
                 variant="contained"
                 size="small"
                 startIcon={<BookingIcon />}
-                onClick={() => navigate(`/groups/${id}/booking`)}
+                 onClick={openBooking}
                 sx={{
                   background: bookingStatus.buttonColor,
                   color: 'white',
@@ -645,7 +656,7 @@ const GroupDetail = () => {
                             size="large"
                             fullWidth
                             startIcon={<BookingIcon />}
-                            onClick={() => navigate(`/groups/${id}/booking`)}
+                            onClick={openBooking}
                             sx={{
                               backgroundColor: 'white',
                               color: 'primary.main',
@@ -749,7 +760,7 @@ const GroupDetail = () => {
                       <Button
                         variant="contained"
                         startIcon={<BookingIcon />}
-                        onClick={() => navigate(`/groups/${id}/booking`)}
+                        onClick={openBooking}
                         sx={{
                           background: bookingStatus.buttonColor,
                           '&:hover': {

@@ -7,17 +7,13 @@ const Destination = require('../models/Destination');
 async function seedDatabase() {
   try {
     console.log('🌱 Starte Database Seeding...');
-    
-    // Verbinde zur MongoDB
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/reisegruppen');
-    console.log('✅ MongoDB verbunden zu:', process.env.MONGODB_URI);
+    console.log('✅ MongoDB verbunden zu:', process.env.MONGODB_URI || 'mongodb://localhost:27017/reisegruppen');
 
-    // Lösche vorhandene Daten
     await TravelOffer.deleteMany({});
     await Destination.deleteMany({});
     console.log('🗑️ Alte Daten gelöscht');
 
-    // Erstelle Admin User falls nicht vorhanden
     let adminUser = await User.findOne({ email: 'admin@tui.com' });
     if (!adminUser) {
       adminUser = await User.create({
@@ -33,7 +29,6 @@ async function seedDatabase() {
       console.log('👤 Admin User erstellt');
     }
 
-    // Erstelle Demo User falls nicht vorhanden
     let demoUser = await User.findOne({ email: 'demo@tui.com' });
     if (!demoUser) {
       demoUser = await User.create({
@@ -49,15 +44,14 @@ async function seedDatabase() {
       console.log('👤 Demo User erstellt');
     }
 
-    // Erstelle Destinations mit gültigen Tags
-    // Erlaubte Destination Tags: ['beach', 'city', 'mountains', 'culture', 'adventure', 'relaxation', 'party', 'family', 'romantic', 'budget', 'luxury']
+    // --- Destinations ---
     const destinations = await Destination.create([
       {
         name: 'Toskana',
         country: 'Italien',
         city: 'Florenz',
         description: 'Malerische Landschaft mit Weinbergen und historischen Städten',
-        images: ['https://source.unsplash.com/800x600?tuscany'],
+        images: ['https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=800&q=80'],
         avgPricePerPerson: 800,
         tags: ['culture', 'relaxation', 'romantic'],
         coordinates: { lat: 43.7711, lng: 11.2486 }
@@ -67,7 +61,7 @@ async function seedDatabase() {
         country: 'Norwegen',
         city: 'Tromsø',
         description: 'Nordlichter und arktische Abenteuer',
-        images: ['https://source.unsplash.com/800x600?norway,northern-lights'],
+        images: ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'],
         avgPricePerPerson: 1200,
         tags: ['adventure', 'mountains'],
         coordinates: { lat: 69.6492, lng: 18.9553 }
@@ -77,7 +71,7 @@ async function seedDatabase() {
         country: 'Griechenland',
         city: 'Santorini',
         description: 'Traumhafte griechische Inseln mit weißen Häusern',
-        images: ['https://source.unsplash.com/800x600?santorini'],
+        images: ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'],
         avgPricePerPerson: 900,
         tags: ['beach', 'relaxation', 'romantic'],
         coordinates: { lat: 36.3932, lng: 25.4615 }
@@ -87,7 +81,7 @@ async function seedDatabase() {
         country: 'Spanien',
         city: 'Barcelona',
         description: 'Lebendige Metropole mit Kultur und Kulinarik',
-        images: ['https://source.unsplash.com/800x600?barcelona'],
+        images: ['https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80'],
         avgPricePerPerson: 600,
         tags: ['city', 'culture'],
         coordinates: { lat: 41.3851, lng: 2.1734 }
@@ -97,7 +91,7 @@ async function seedDatabase() {
         country: 'Österreich',
         city: 'Innsbruck',
         description: 'Bergwelt und Wanderparadies',
-        images: ['https://source.unsplash.com/800x600?alps,austria'],
+        images: ['https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80'],
         avgPricePerPerson: 700,
         tags: ['mountains', 'adventure'],
         coordinates: { lat: 47.2692, lng: 11.4041 }
@@ -105,8 +99,7 @@ async function seedDatabase() {
     ]);
     console.log(`✅ ${destinations.length} Destinations erstellt`);
 
-    // Erstelle TravelOffers mit gültigen Amenities
-    // Erlaubte TravelOffer Amenities: ['WLAN', 'Pool', 'Klimaanlage', 'Spa', 'Fitness', 'Restaurant', 'Bar', 'Parkplatz', 'Haustiere', 'Strand', 'Balkon', 'Küche', 'Waschmaschine', 'TV', 'Safe', 'Minibar', 'Roomservice', 'All-Inclusive', 'Halbpension', 'Vollpension', 'Nur Frühstück']
+    // --- TravelOffers ---
     const travelOffers = [
       {
         title: 'Traumhafte Toskana Tour',
@@ -117,13 +110,13 @@ async function seedDatabase() {
         category: 'Hotel',
         images: [
           {
-            url: 'https://source.unsplash.com/800x600?tuscany,wine',
-            title: 'Toskana Weinberge',
+            url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+            title: 'Hotel mit Pool in der Toskana',
             isMain: true
           },
           {
-            url: 'https://source.unsplash.com/800x600?florence,italy',
-            title: 'Florenz Stadtansicht',
+            url: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=800&q=80',
+            title: 'Weinberge Toskana',
             isMain: false
           }
         ],
@@ -158,8 +151,8 @@ async function seedDatabase() {
         category: 'Hotel',
         images: [
           {
-            url: 'https://source.unsplash.com/800x600?norway,northern-lights',
-            title: 'Nordlichter über Tromsø',
+            url: 'https://images.unsplash.com/photo-1519817650390-64a93db511ed?auto=format&fit=crop&w=800&q=80',
+            title: 'Hotel in Tromsø mit Nordlichtern',
             isMain: true
           }
         ],
@@ -192,8 +185,8 @@ async function seedDatabase() {
         category: 'Resort',
         images: [
           {
-            url: 'https://source.unsplash.com/800x600?santorini,greece',
-            title: 'Santorini Sonnenuntergang',
+            url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+            title: 'Santorini Resort',
             isMain: true
           }
         ],
@@ -226,8 +219,8 @@ async function seedDatabase() {
         category: 'Hotel',
         images: [
           {
-            url: 'https://source.unsplash.com/800x600?barcelona,spain',
-            title: 'Barcelona Stadtpanorama',
+            url: 'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80',
+            title: 'Hotel in Barcelona',
             isMain: true
           }
         ],
@@ -260,8 +253,8 @@ async function seedDatabase() {
         category: 'Pension',
         images: [
           {
-            url: 'https://source.unsplash.com/800x600?alps,hiking',
-            title: 'Alpen Wanderwege',
+            url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80',
+            title: 'Pension in den Alpen',
             isMain: true
           }
         ],
@@ -284,6 +277,108 @@ async function seedDatabase() {
           average: 4.8,
           count: 98
         }
+      },
+      {
+        title: 'Mittelmeer Kreuzfahrt',
+        description: 'Entspannte Kreuzfahrt durch das Mittelmeer mit Stopps in den schönsten Häfen Europas.',
+        destination: 'Mittelmeer',
+        country: 'International',
+        city: 'Verschiedene Häfen',
+        category: 'Kreuzfahrt',
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80',
+            title: 'Luxus Kreuzfahrtschiff',
+            isMain: true
+          }
+        ],
+        pricePerPerson: 1200,
+        pricePerNight: 150,
+        minPersons: 1,
+        maxPersons: 20,
+        stars: 5,
+        amenities: ['WLAN', 'Pool', 'Spa', 'All-Inclusive', 'Restaurant', 'Bar', 'Fitness'],
+        tags: ['luxury', 'relaxation', 'beach'],
+        location: {
+          latitude: 42.0,
+          longitude: 12.0,
+          address: 'Verschiedene Mittelmeerhäfen'
+        },
+        cancellationPolicy: 'moderate',
+        createdBy: adminUser._id,
+        available: true,
+        rating: {
+          average: 4.9,
+          count: 312
+        }
+      },
+      {
+        title: 'Schwarzwald Wellness',
+        description: 'Entspannung pur im Schwarzwald mit Wellness, Wandern und regionaler Küche.',
+        destination: 'Schwarzwald',
+        country: 'Deutschland',
+        city: 'Baden-Baden',
+        category: 'Wellness Hotel',
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80',
+            title: 'Wellness Hotel Schwarzwald',
+            isMain: true
+          }
+        ],
+        pricePerPerson: 420,
+        pricePerNight: 120,
+        minPersons: 2,
+        maxPersons: 6,
+        stars: 4,
+        amenities: ['WLAN', 'Spa', 'Pool', 'Restaurant', 'Halbpension', 'Fitness'],
+        tags: ['relaxation', 'mountains', 'family'],
+        location: {
+          latitude: 48.7606,
+          longitude: 8.2401,
+          address: 'Wellness Resort Schwarzwald, Baden-Baden'
+        },
+        cancellationPolicy: 'free',
+        createdBy: adminUser._id,
+        available: true,
+        rating: {
+          average: 4.5,
+          count: 89
+        }
+      },
+      {
+        title: 'Städtetrip London',
+        description: 'Entdecken Sie die britische Hauptstadt mit ihren Sehenswürdigkeiten, Museen und dem typischen Flair.',
+        destination: 'London',
+        country: 'Großbritannien',
+        city: 'London',
+        category: 'Hotel',
+        images: [
+          {
+            url: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80',
+            title: 'London City Hotel',
+            isMain: true
+          }
+        ],
+        pricePerPerson: 680,
+        pricePerNight: 95,
+        minPersons: 1,
+        maxPersons: 8,
+        stars: 4,
+        amenities: ['WLAN', 'Restaurant', 'Bar', 'Nur Frühstück', 'TV'],
+        tags: ['city', 'culture', 'adventure'],
+        location: {
+          latitude: 51.5074,
+          longitude: -0.1278,
+          address: 'Central London Hotel, London'
+        },
+        cancellationPolicy: 'moderate',
+        createdBy: adminUser._id,
+        available: true,
+        rating: {
+          average: 4.4,
+          count: 267
+        }
       }
     ];
 
@@ -296,7 +391,6 @@ async function seedDatabase() {
     - ${createdOffers.length} Travel Offers
     - 2 Test Users (admin@tui.com / demo@tui.com)`);
 
-    // Zeige Beispiele der erstellten Angebote
     console.log('\n📋 Erstellte Reiseangebote:');
     createdOffers.forEach((offer, index) => {
       console.log(`   ${index + 1}. ${offer.title} - ${offer.destination} (€${offer.pricePerPerson})`);
@@ -311,5 +405,4 @@ async function seedDatabase() {
   }
 }
 
-// Führe Seeding aus
 seedDatabase();

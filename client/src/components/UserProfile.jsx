@@ -153,7 +153,7 @@ const UserProfile = () => {
           label: 'Bezahlung offen',
           color: 'warning',
           icon: <PaymentIcon />,
-          actionLabel: 'Jetzt buchen!',
+          actionLabel: 'Jetzt bezahlen!',
           urgent: true,
           description: 'Zahlung erforderlich'
         };
@@ -206,6 +206,16 @@ const UserProfile = () => {
   const openEditDialog = (section) => {
     setEditData(getEditDataForSection(section));
     setEditDialog({ open: true, section });
+  };
+// Buchung initialisieren (falls nötig) und anschließend zur Zahlungsseite wechseln
+  const openBooking = async (groupId) => {
+    try {
+      await api.post(`/bookings/initialize/${groupId}`);
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Buchung:', error);
+    } finally {
+      navigate(`/groups/${groupId}/booking`);
+    }
   };
 
   const getEditDataForSection = (section) => {
@@ -563,7 +573,7 @@ const UserProfile = () => {
                         variant="contained"
                         size="large"
                         startIcon={<BookingIcon />}
-                        onClick={() => navigate(`/groups/${nextTrip._id || nextTrip.id}/booking`)}
+                       onClick={() => openBooking(nextTrip._id || nextTrip.id)}
                         sx={{
                           backgroundColor: 'white',
                           color: 'primary.main',
@@ -913,7 +923,7 @@ const UserProfile = () => {
                                       variant={statusInfo.urgent ? "contained" : "outlined"}
                                       size="small"
                                       startIcon={<BookingIcon />}
-                                      onClick={() => navigate(`/groups/${group._id || group.id}/booking`)}
+                                      onClick={() => openBooking(group._id || group.id)}
                                       sx={{
                                         minWidth: 'auto',
                                         ...(statusInfo.urgent && {

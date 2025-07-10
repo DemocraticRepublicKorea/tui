@@ -97,6 +97,16 @@ const GroupList = () => {
     // KORRIGIERT: Verwende /groups/:id Route
     navigate(`/groups/${groupId}`);
   };
+// Buchung initialisieren (falls nötig) und anschließend zur Zahlungsseite wechseln
+  const openBooking = async (groupId) => {
+    try {
+      await api.post(`/bookings/initialize/${groupId}`);
+    } catch (error) {
+      console.error('Fehler beim Initialisieren der Buchung:', error);
+    } finally {
+      navigate(`/groups/${groupId}/booking`);
+    }
+  };
 
   // ERWEITERT: Bessere Logik für nächste Reisen
   const upcomingTrips = React.useMemo(() => {
@@ -133,7 +143,7 @@ const GroupList = () => {
           label: 'Bezahlung offen',
           color: 'warning',
           icon: <PaymentIcon />,
-          actionLabel: 'Jetzt buchen!'
+          actionLabel: 'Jetzt bezahlen!'
         };
       case 'booking':
         return {
@@ -326,7 +336,7 @@ const GroupList = () => {
                           variant="contained"
                           size="large"
                           startIcon={<BookingIcon />}
-                          onClick={() => navigate(`/groups/${nextTrip._id || nextTrip.id}/booking`)}
+                          onClick={() => openBooking(nextTrip._id || nextTrip.id)}
                           sx={{
                             backgroundColor: nextTrip.status === 'decided' ? '#FF6B35' : 
                                            nextTrip.status === 'booking' ? '#2196F3' : '#4CAF50',
@@ -386,7 +396,7 @@ const GroupList = () => {
                           <Button
                             size="small"
                             startIcon={<BookingIcon />}
-                            onClick={() => navigate(`/groups/${trip._id || trip.id}/booking`)}
+                            onClick={() => openBooking(trip._id || trip.id)}
                           >
                             Buchung
                           </Button>
@@ -561,7 +571,7 @@ const GroupList = () => {
                               variant="contained"
                               onClick={(e) => {
                                 e.preventDefault();
-                                navigate(`/groups/${groupId}/booking`);
+                                openBooking(groupId);
                               }}
                               startIcon={<BookingIcon />}
                               sx={{

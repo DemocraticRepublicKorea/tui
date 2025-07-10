@@ -24,7 +24,7 @@ const travelOfferSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Hotel', 'Apartment', 'Resort', 'Hostel', 'Ferienwohnung', 'Pension', 'Villa'],
+    enum: ['Hotel', 'Apartment', 'Resort', 'Hostel', 'Ferienwohnung', 'Pension', 'Villa', 'Kreuzfahrt', 'Wellness Hotel'],
     required: true
   },
   images: [{
@@ -102,7 +102,21 @@ const travelOfferSchema = new mongoose.Schema({
   }],
   tags: [{
     type: String,
-    enum: ['All-Inclusive', 'Strand', 'Stadt', 'Berge', 'Kultur', 'Abenteuer', 'Entspannung', 'Wellness', 'Party', 'Familie', 'Romantik', 'Luxus', 'Günstig']
+    enum: [
+      'all-inclusive',
+      'beach',
+      'city',
+      'mountains',
+      'culture',
+      'adventure',
+      'relaxation',
+      'wellness',
+      'party',
+      'family',
+      'romantic',
+      'luxury',
+      'budget'
+    ]
   }],
   cancellationPolicy: {
     type: String,
@@ -117,7 +131,6 @@ const travelOfferSchema = new mongoose.Schema({
     type: String,
     default: '11:00'
   },
-  // KORRIGIERT: ObjectId statt Number für User-Referenz
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

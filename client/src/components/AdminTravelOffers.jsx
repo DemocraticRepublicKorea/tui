@@ -61,6 +61,7 @@ const AdminTravelOffers = () => {
   const categories = ['Hotel', 'Apartment', 'Resort', 'Hostel', 'Ferienwohnung', 'Pension', 'Villa'];
 
   const [newImage, setNewImage] = useState('');
+  const [imageError, setImageError] = useState('');
 
   useEffect(() => {
     loadOffers();
@@ -83,6 +84,13 @@ const AdminTravelOffers = () => {
   const handleOpenDialog = (offer = null) => {
     if (offer) {
       setEditingOffer(offer);
+      // Extrahiere nur die URLs aus den image objects
+      const imageUrls = offer.images?.map(img => {
+        if (typeof img === 'string') return img;
+        if (img && typeof img === 'object' && img.url) return img.url;
+        return null;
+      }).filter(url => url !== null) || [];
+      
       setFormData({
         title: offer.title || '',
         description: offer.description || '',
@@ -90,7 +98,7 @@ const AdminTravelOffers = () => {
         country: offer.country || '',
         city: offer.city || '',
         category: offer.category || '',
-        images: offer.images?.map(img => (img.url ? img.url : img)) || [],
+        images: imageUrls,
         pricePerPerson: offer.pricePerPerson || '',
         minPersons: offer.minPersons || 1,
         maxPersons: offer.maxPersons || 10,
@@ -114,6 +122,8 @@ const AdminTravelOffers = () => {
         tags: []
       });
     }
+    setNewImage('');
+    setImageError('');
     setOpenDialog(true);
   };
 
@@ -121,6 +131,7 @@ const AdminTravelOffers = () => {
     setOpenDialog(false);
     setEditingOffer(null);
     setNewImage('');
+    setImageError('');
     setError('');
   };
 
@@ -130,8 +141,15 @@ const AdminTravelOffers = () => {
 
   const handleAddImage = () => {
     if (newImage.trim()) {
-      setFormData(prev => ({ ...prev, images: [...prev.images, newImage.trim()] }));
-      setNewImage('');
+      // Validiere URL
+      try {
+        new URL(newImage.trim());
+        setFormData(prev => ({ ...prev, images: [...prev.images, newImage.trim()] }));
+        setNewImage('');
+        setImageError('');
+      } catch (err) {
+        setImageError('Bitte geben Sie eine gültige URL ein');
+      }
     }
   };
 
@@ -160,17 +178,44 @@ const AdminTravelOffers = () => {
         images: formData.images
       };
 
+      console.log('📤 Submitting data:', submitData);
+      console.log('🔗 API endpoint:', editingOffer ? `/travel-offers/${editingOffer._id}` : '/travel-offers');
+
       if (editingOffer) {
-        await api.put(`/travel-offers/${editingOffer._id}`, submitData);
+        const response = await api.put(`/travel-offers/${editingOffer._id}`, submitData);
+        console.log('✅ Update response:', response);
       } else {
-        await api.post('/travel-offers', submitData);
+        const response = await api.post('/travel-offers', submitData);
+        console.log('✅ Create response:', response);
       }
 
       await loadOffers();
       handleCloseDialog();
     } catch (err) {
-      console.error('Fehler beim Speichern:', err);
-      setError(err.response?.data?.message || 'Fehler beim Speichern des Angebots');
+      console.error('❌ Fehler beim Speichern:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response,
+        data: err.response?.data,
+        status: err.response?.status
+      });
+      
+      // Detaillierte Fehlermeldung
+      let errorMessage = 'Fehler beim Speichern des Angebots';
+      
+      if (err.response?.status === 500) {
+        if (err.response?.data?.error?.includes('is not a valid enum value')) {
+          errorMessage = 'Ungültige Tag-Auswahl. Bitte verwenden Sie nur die vorgegebenen Tags.';
+        } else {
+          errorMessage = 'Serverfehler - Bitte überprüfen Sie Ihre Eingaben';
+        }
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     }
   };
 
@@ -201,7 +246,7 @@ const AdminTravelOffers = () => {
 
       <Box sx={{ maxWidth: 1200, mx: 'auto', px: 3 }}>
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
             {error}
           </Alert>
         )}
@@ -326,13 +371,57 @@ const AdminTravelOffers = () => {
             <Grid item xs={12}>
               <Typography variant="subtitle1" gutterBottom>Bilder</Typography>
               <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                <TextField fullWidth label="Bild-URL hinzufügen" value={newImage} onChange={(e) => setNewImage(e.target.value)} placeholder="https://example.com/image.jpg" />
+                <TextField 
+                  fullWidth 
+                  label="Bild-URL hinzufügen" 
+                  value={newImage} 
+                  onChange={(e) => setNewImage(e.target.value)} 
+                  placeholder="https://example.com/image.jpg" 
+                  error={!!imageError}
+                  helperText={imageError}
+                />
                 <Button onClick={handleAddImage} variant="outlined">Hinzufügen</Button>
               </Stack>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {formData.images.map((img, index) => (
-                  <Chip key={index} label={`Bild ${index + 1}`} onDelete={() => handleRemoveImage(index)} variant="outlined" />
+                  <Box key={index} sx={{ position: 'relative' }}>
+                    <img 
+                      src={img} 
+                      alt={`Bild ${index + 1}`}
+                      style={{ 
+                        width: '100px', 
+                        height: '100px', 
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                        border: '1px solid #ddd'
+                      }}
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmb250LXNpemU9IjE0Ij5CaWxkIGZlaGx0PC90ZXh0Pjwvc3ZnPg==';
+                      }}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => handleRemoveImage(index)}
+                      sx={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        backgroundColor: 'error.main',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: 'error.dark'
+                        }
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
                 ))}
+                {formData.images.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Noch keine Bilder hinzugefügt
+                  </Typography>
+                )}
               </Box>
             </Grid>
           </Grid>
